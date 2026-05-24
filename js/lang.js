@@ -34,7 +34,22 @@
     if (pageTitleKey) document.title = t("page." + pageTitleKey);
 
     root.querySelectorAll("[data-i18n]").forEach(function (el) {
+      if (el.dataset.i18nVertical) return;
       el.textContent = t(el.dataset.i18n);
+    });
+
+    root.querySelectorAll("[data-i18n-vertical]").forEach(function (el) {
+      var text = t(el.dataset.i18nVertical);
+      var label = el.getAttribute("aria-label") || t("support.btn");
+      el.setAttribute("aria-label", label);
+      el.textContent = "";
+      for (var i = 0; i < text.length; i++) {
+        if (text.charAt(i) === " ") continue;
+        var line = document.createElement("span");
+        line.className = "btn-support-vertical__char";
+        line.textContent = text.charAt(i);
+        el.appendChild(line);
+      }
     });
     root.querySelectorAll("[data-i18n-html]").forEach(function (el) {
       el.innerHTML = t(el.dataset.i18nHtml);

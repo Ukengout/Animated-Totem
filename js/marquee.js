@@ -1,11 +1,24 @@
 (function () {
+  var MOBILE_BP = 768;
   var TOTEM_COUNT = 41;
   var SKIP = { 31: true };
-  var COLUMN_COUNT = 6;
+  var DESKTOP_COLUMNS = 6;
 
   var TOTEM_PATHS = [];
   for (var i = 0; i < TOTEM_COUNT; i++) {
     if (!SKIP[i]) TOTEM_PATHS.push("assets/totem" + i + ".png");
+  }
+
+  function isMobile() {
+    if (window.TotemLayout) return window.TotemLayout.isMobile();
+    return window.innerWidth <= MOBILE_BP;
+  }
+
+  function getRoot() {
+    if (window.TotemLayout && window.TotemLayout.getMarqueeRoot) {
+      return window.TotemLayout.getMarqueeRoot();
+    }
+    return document.body;
   }
 
   function shuffleArray(arr) {
@@ -47,21 +60,33 @@
     return item;
   }
 
+  function fillTrack(track, paths) {
+    var stripPaths = paths.length > 0 ? paths : shuffleArray(TOTEM_PATHS);
+    var loopPaths = stripPaths.concat(stripPaths);
+    for (var p = 0; p < loopPaths.length; p++) {
+      track.appendChild(createTotemItem(loopPaths[p]));
+    }
+  }
+
   function buildColumn(direction, paths) {
     var col = document.createElement("div");
     col.className = "totem-marquee-col totem-marquee-col--" + direction;
 
     var track = document.createElement("div");
     track.className = "totem-marquee-track totem-marquee-track--loading";
-
-    var stripPaths = paths.length > 0 ? paths : shuffleArray(TOTEM_PATHS);
-    var loopPaths = stripPaths.concat(stripPaths);
-    for (var p = 0; p < loopPaths.length; p++) {
-      track.appendChild(createTotemItem(loopPaths[p]));
-    }
+    fillTrack(track, paths);
 
     col.appendChild(track);
     return col;
+  }
+
+  function buildHorizontalTrack(direction, paths) {
+    var track = document.createElement("div");
+    track.className =
+      "totem-marquee-track totem-marquee-track--horizontal totem-marquee-track--loading totem-marquee-track--" +
+      direction;
+    fillTrack(track, paths);
+    return track;
   }
 
   function buildPanel(side, columnDefs) {
@@ -82,6 +107,22 @@
     inner.appendChild(cols);
     panel.appendChild(inner);
     return panel;
+  }
+
+  function buildBand(position, direction, paths) {
+    var band = document.createElement("div");
+    band.className = "totem-marquee-band totem-marquee-band--" + position;
+    band.setAttribute("aria-hidden", "true");
+    band.appendChild(buildHorizontalTrack(direction, paths));
+    return band;
+  }
+
+  function destroyMarquees() {
+    var root = getRoot();
+    var nodes = root.querySelectorAll(".totem-marquee-panel, .totem-marquee-band");
+    for (var i = 0; i < nodes.length; i++) nodes[i].remove();
+    var bodyNodes = document.body.querySelectorAll(":scope > .totem-marquee-panel, :scope > .totem-marquee-band");
+    for (var j = 0; j < bodyNodes.length; j++) bodyNodes[j].remove();
   }
 
   function whenTrackImagesReady(track) {
@@ -109,7 +150,10 @@
     var half = items.length / 2;
     if (!half || !items[half]) return;
 
-    var shift = Math.round(items[half].offsetTop - items[0].offsetTop);
+    var horizontal = track.classList.contains("totem-marquee-track--horizontal");
+    var shift = horizontal
+      ? Math.round(items[half].offsetLeft - items[0].offsetLeft)
+      : Math.round(items[half].offsetTop - items[0].offsetTop);
     if (shift <= 0) return;
 
     track.style.setProperty("--marquee-shift", shift + "px");
@@ -123,7 +167,8 @@
   }
 
   function initMarqueeLoops() {
-    var tracks = document.querySelectorAll(".totem-marquee-track");
+    var root = getRoot();
+    var tracks = root.querySelectorAll(".totem-marquee-track");
     var trackList = [];
     for (var i = 0; i < tracks.length; i++) trackList.push(tracks[i]);
 
@@ -132,21 +177,21 @@
         syncMarqueeLoop(trackList[t]);
         trackList[t].classList.remove("totem-marquee-track--loading");
       }
-
-      var resizeTimer;
-      window.addEventListener("resize", function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-          for (var r = 0; r < trackList.length; r++) syncMarqueeLoop(trackList[r]);
-        }, 120);
-      });
     });
   }
 
-  function init() {
-    if (!document.body.classList.contains("landing-with-marquee")) return;
+  var loopResizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(loopResizeTimer);
+    loopResizeTimer = setTimeout(function () {
+      var root = getRoot();
+      var tracks = root.querySelectorAll(".totem-marquee-track");
+      for (var i = 0; i < tracks.length; i++) syncMarqueeLoop(tracks[i]);
+    }, 120);
+  });
 
-    var buckets = partitionForColumns(COLUMN_COUNT);
+  function buildDesktop(root) {
+    var buckets = partitionForColumns(DESKTOP_COLUMNS);
     var bucketIndex = 0;
 
     var left = buildPanel("left", [
@@ -161,14 +206,60 @@
       { direction: "up", paths: buckets[bucketIndex++] },
     ]);
 
-    document.body.insertBefore(left, document.body.firstChild);
-    document.body.appendChild(right);
+    root.insertBefore(left, root.firstChild);
+    root.appendChild(right);
+  }
+
+  function buildMobile(root) {
+    var pool = shuffleArray(TOTEM_PATHS);
+    var topPaths = pool.slice(0, 10);
+    var bottomPaths = shuffleArray(TOTEM_PATHS).slice(0, 10);
+
+    root.insertBefore(buildBand("top", "left", topPaths), root.firstChild);
+    root.appendChild(buildBand("bottom", "right", bottomPaths));
+  }
+
+  function shouldShowMarquee() {
+    if (document.body.classList.contains("landing-with-marquee")) return true;
+    if (document.body.classList.contains("editor-page") && isMobile()) return true;
+    return false;
+  }
+
+  function init() {
+    if (!shouldShowMarquee()) {
+      destroyMarquees();
+      return;
+    }
+    destroyMarquees();
+    var root = getRoot();
+    if (isMobile()) buildMobile(root);
+    else buildDesktop(root);
     initMarqueeLoops();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
+  window.__totemMarqueeRebuild = init;
+
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(init, 180);
+  });
+
+  window.addEventListener("totem-layout-changed", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(init, 50);
+  });
+
+  function start() {
+    if (window.TotemLayout && document.readyState !== "loading") {
+      window.TotemLayout.apply();
+    }
     init();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
   }
 })();

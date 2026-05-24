@@ -520,6 +520,10 @@ body.editor-page {
   text-transform: uppercase;
 }
 
+.btn-header-resource-pack__short {
+  display: none;
+}
+
 .editor-body {
   display: flex;
   flex-grow: 1;
@@ -1711,8 +1715,8 @@ body.has-site-support {
   position: fixed;
   top: 16px;
   right: 16px;
-  z-index: 300;
-  display: flex;
+  z-index: 500;
+  display: none;
   gap: 0;
   border: 2px solid var(--border-strong);
   box-shadow: var(--shadow-lg);
@@ -1746,6 +1750,10 @@ body.has-site-support {
 
 .lang-switcher__btn + .lang-switcher__btn {
   border-left: 2px solid var(--border-strong);
+}
+
+body[data-i18n-page="index"] .lang-switcher {
+  display: flex;
 }
 
 .site-support-bar {
@@ -1915,17 +1923,6 @@ body.landing-with-marquee .preview-header {
   object-position: center;
   image-rendering: pixelated;
   display: block;
-}
-
-@media (max-width: 768px) {
-  .totem-marquee-panel {
-    display: none;
-  }
-
-  .frame-picker-modal__backdrop {
-    left: 0;
-    right: 0;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

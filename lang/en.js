@@ -6,6 +6,7 @@ window.TOTEM_LANG_EN = {
     done: "Totem Maker — pack ready",
   },
   lang: { switcher: "Language", ru: "RU", en: "EN" },
+  layout: { switcher: "Layout", mobile: "M", desktop: "PC" },
   index: {
     seoDescription:
       "Create your own custom animated totem of undying for Minecraft Java. Customize the animation online and download a ready-to-use resource pack for any version!",
@@ -27,6 +28,7 @@ window.TOTEM_LANG_EN = {
     redoAria: "Redo",
     support: "Support the author",
     resourcePack: "Resource pack settings",
+    next: "Next",
     paintAria: "Drawing panel",
     pickColor: "Pick color",
     colorsTitle: "LMB — primary, RMB — secondary",
@@ -100,6 +102,10 @@ window.TOTEM_LANG_EN = {
     errNoDataDetail: "Go back to the first step and save the texture again.",
     errBuild: "Build error",
   },
-  support: { aria: "Support the author", btn: "Support the author" },
+  support: {
+    aria: "Support the author",
+    btn: "Support the author",
+    btnShort: "Support",
+  },
   common: { sec: "sec", px: "px" },
 };

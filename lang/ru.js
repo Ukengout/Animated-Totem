@@ -6,6 +6,7 @@ window.TOTEM_LANG_RU = {
     done: "Totem Maker — ресурспак готов",
   },
   lang: { switcher: "Язык", ru: "RU", en: "EN" },
+  layout: { switcher: "Вид", mobile: "М", desktop: "ПК" },
   index: {
     seoDescription:
       "Бесплатный онлайн-инструмент для создания кастомных анимированных тотемов в Minecraft Java. Настрой свою анимацию и скачай готовый ресурспак для любой версии!",
@@ -27,6 +28,7 @@ window.TOTEM_LANG_RU = {
     redoAria: "Повторить",
     support: "Поддержать автора",
     resourcePack: "Настройка ресурспака",
+    next: "Далее",
     paintAria: "Панель рисования",
     pickColor: "Выбрать цвет",
     colorsTitle: "ЛКМ — основной цвет, ПКМ — второй",
@@ -100,6 +102,10 @@ window.TOTEM_LANG_RU = {
     errNoDataDetail: "Вернитесь к первому шагу и заново сохраните текстуру.",
     errBuild: "Ошибка при сборке",
   },
-  support: { aria: "Поддержка автора", btn: "Поддержать автора" },
+  support: {
+    aria: "Поддержка автора",
+    btn: "Поддержать автора",
+    btnShort: "Поддержать",
+  },
   common: { sec: "сек", px: "px" },
 };
