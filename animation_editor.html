@@ -17,10 +17,10 @@
       ><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
     /></noscript>
     <script src="js/layout-boot.js"></script>
-    <link rel="stylesheet" href="css/main.css?v=1.0.0" />
-    <link rel="stylesheet" href="css/mobile.css?v=1.0.0" />
-    <link rel="stylesheet" href="css/layout-overrides.css?v=1.0.0" />
-    <link rel="stylesheet" href="css/mobile-layout.css?v=1.0.0" />
+    <link rel="stylesheet" href="css/main.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/layout-overrides.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile-layout.css?v=1.0.1" />
     <script src="js/layout.js"></script>
     <script src="lang/ru.js"></script>
     <script src="lang/en.js"></script>
@@ -28,7 +28,7 @@
   </head>
   <body class="app-shell--stretch editor-page has-site-support" data-i18n-page="editor">
     <header class="editor-header editor-header--dock">
-      <button class="btn btn--ghost" type="button" onclick="location.href='index.html'" data-i18n="editor.back">← Назад</button>
+      <button class="btn btn--ghost" type="button" onclick="location.href='getting_skin.html'" data-i18n="editor.back">← Назад</button>
 
       <div class="hist-row hist-row--header">
         <button class="hist-btn" id="undoBtn" disabled type="button" data-i18n-title="editor.undoTitle" data-i18n-aria="editor.undoAria">
@@ -168,8 +168,8 @@
       </main>
 
     </div>
-    <script src="js/marquee.js"></script>
     <script src="js/preview3d.js"></script>
+    <script src="js/totem-default-texture.js?v=1.0.3"></script>
     <script>
       const W = 16,
         PIXEL = 10;
@@ -272,11 +272,11 @@
       }
 
       function getFrameLeadPx() {
-        return isMobileLayout() ? FRAME_DISPLAY * 1 : 0;
+        return 0;
       }
 
       function getPreviewPixelSize() {
-        return isMobileLayout() ? 9 : 14;
+        return isMobileLayout() ? 12 : 14;
       }
 
       function updateFrameHighlightLayout() {
@@ -940,21 +940,42 @@
       let totemDlChordArmed = false;
       let totemDlChordTimer = null;
 
-      window.addEventListener("load", () => {
+      function loadEditorTexture() {
+        if (TotemDefaultTexture.isDefaultSource()) {
+          return TotemDefaultTexture.applyToEditorCanvas(ctx, canvas, FRAME_COUNT);
+        }
         const data = localStorage.getItem("totemTexture");
-        if (data) {
+        if (!data) return Promise.resolve();
+        return new Promise((resolve, reject) => {
           const img = new Image();
           img.onload = () => {
-            ctx.drawImage(img, 0, 0);
-            pushHistory();
-            ensureEditorPreview();
+            canvas.width = W;
+            canvas.height = H;
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img, 0, 0, W, H);
+            resolve();
           };
+          img.onerror = () => reject(new Error("totem texture load failed"));
           img.src = data;
-        } else {
-          pushHistory();
-          ensureEditorPreview();
-        }
+        });
+      }
 
+      window.addEventListener("load", () => {
+        loadEditorTexture()
+          .then(() => {
+            pushHistory();
+            return ensureEditorPreview();
+          })
+          .catch((err) => {
+            console.error(err);
+            pushHistory();
+          })
+          .finally(() => {
+            bindEditorUi();
+          });
+      });
+
+      function bindEditorUi() {
         setMainColor(state.primary);
         setSecondaryColor(state.secondary);
         setTool("pencil");
@@ -1052,7 +1073,7 @@
             }
           }
         });
-      });
+      }
 
       document.addEventListener("totem-i18n-applied", () => {
         applyEditorLayout();

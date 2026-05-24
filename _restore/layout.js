@@ -4,13 +4,13 @@
   var PHONE_SHELL_ID = "phoneSim";
 
   function getStored() {
-    var v = sessionStorage.getItem(STORAGE_KEY);
+    var v = localStorage.getItem(STORAGE_KEY);
     return v === "mobile" || v === "desktop" ? v : null;
   }
 
   function setMode(mode) {
     if (mode !== "mobile" && mode !== "desktop") return;
-    sessionStorage.setItem(STORAGE_KEY, mode);
+    localStorage.setItem(STORAGE_KEY, mode);
     apply();
   }
 
@@ -27,7 +27,9 @@
 
   function isOutsidePhoneShell(node) {
     if (!node || node.nodeType !== 1) return false;
-    return node.classList.contains("site-top-bar");
+    return (
+      node.classList.contains("layout-switcher") || node.classList.contains("lang-switcher")
+    );
   }
 
   function unwrapPhoneShell(shell) {
@@ -120,8 +122,7 @@
         if (!getStored()) apply();
         else {
           updatePhoneShell();
-          if (typeof global.__totemMarqueeResync === "function") global.__totemMarqueeResync();
-          else if (typeof global.__totemMarqueeRebuild === "function") global.__totemMarqueeRebuild();
+          if (typeof global.__totemMarqueeRebuild === "function") global.__totemMarqueeRebuild();
         }
       }, 120);
     });

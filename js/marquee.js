@@ -145,7 +145,7 @@
     return Promise.all(waits);
   }
 
-  function syncMarqueeLoop(track) {
+  function syncMarqueeLoop(track, soft) {
     var items = track.querySelectorAll(".totem-marquee-item");
     var half = items.length / 2;
     if (!half || !items[half]) return;
@@ -156,13 +156,26 @@
       : Math.round(items[half].offsetTop - items[0].offsetTop);
     if (shift <= 0) return;
 
-    track.style.setProperty("--marquee-shift", shift + "px");
+    var shiftPx = shift + "px";
+    var prev = track.style.getPropertyValue("--marquee-shift");
+    if (prev === shiftPx) return;
+
+    track.style.setProperty("--marquee-shift", shiftPx);
+    if (soft || prev) return;
 
     var anim = getComputedStyle(track).animationName;
     if (anim && anim !== "none") {
       track.style.animation = "none";
       void track.offsetHeight;
       track.style.animation = "";
+    }
+  }
+
+  function resyncMarqueeLoopsOnly() {
+    var root = getRoot();
+    var tracks = root.querySelectorAll(".totem-marquee-track");
+    for (var i = 0; i < tracks.length; i++) {
+      syncMarqueeLoop(tracks[i], true);
     }
   }
 
@@ -183,11 +196,7 @@
   var loopResizeTimer;
   window.addEventListener("resize", function () {
     clearTimeout(loopResizeTimer);
-    loopResizeTimer = setTimeout(function () {
-      var root = getRoot();
-      var tracks = root.querySelectorAll(".totem-marquee-track");
-      for (var i = 0; i < tracks.length; i++) syncMarqueeLoop(tracks[i]);
-    }, 120);
+    loopResizeTimer = setTimeout(resyncMarqueeLoopsOnly, 200);
   });
 
   function buildDesktop(root) {
@@ -220,34 +229,77 @@
   }
 
   function shouldShowMarquee() {
-    if (document.body.classList.contains("landing-with-marquee")) return true;
-    if (document.body.classList.contains("editor-page") && isMobile()) return true;
+    if (document.body.classList.contains("editor-page")) return false;
+    return document.body.classList.contains("landing-with-marquee");
+  }
+
+  var lastBuiltMode = null;
+  var lastBuiltWidth = 0;
+  var WIDTH_REBUILD_DELTA = 48;
+
+  function layoutWidth() {
+    return Math.round((window.visualViewport && window.visualViewport.width) || window.innerWidth);
+  }
+
+  function currentMode() {
+    return isMobile() ? "mobile" : "desktop";
+  }
+
+  function hasMarqueeNodes(root) {
+    return !!root.querySelector(".totem-marquee-panel, .totem-marquee-band");
+  }
+
+  function needsFullRebuild() {
+    if (!shouldShowMarquee()) return false;
+    var mode = currentMode();
+    var width = layoutWidth();
+    if (lastBuiltMode !== mode) return true;
+    if (!hasMarqueeNodes(getRoot())) return true;
+    if (Math.abs(width - lastBuiltWidth) >= WIDTH_REBUILD_DELTA) return true;
     return false;
   }
 
-  function init() {
+  function init(force) {
     if (!shouldShowMarquee()) {
       destroyMarquees();
+      lastBuiltMode = null;
+      lastBuiltWidth = 0;
       return;
     }
-    destroyMarquees();
+
     var root = getRoot();
+    if (!force && !needsFullRebuild()) {
+      resyncMarqueeLoopsOnly();
+      lastBuiltWidth = layoutWidth();
+      return;
+    }
+
+    destroyMarquees();
     if (isMobile()) buildMobile(root);
     else buildDesktop(root);
+    lastBuiltMode = currentMode();
+    lastBuiltWidth = layoutWidth();
     initMarqueeLoops();
   }
 
-  window.__totemMarqueeRebuild = init;
+  window.__totemMarqueeRebuild = function (force) {
+    init(!!force);
+  };
+  window.__totemMarqueeResync = resyncMarqueeLoopsOnly;
 
   var resizeTimer;
   window.addEventListener("resize", function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(init, 180);
+    resizeTimer = setTimeout(function () {
+      init(false);
+    }, 220);
   });
 
   window.addEventListener("totem-layout-changed", function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(init, 50);
+    resizeTimer = setTimeout(function () {
+      init(needsFullRebuild());
+    }, 50);
   });
 
   function start() {

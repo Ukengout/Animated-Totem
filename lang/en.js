@@ -1,9 +1,16 @@
 window.TOTEM_LANG_EN = {
   page: {
-    index: "Minecraft Animated Totem Generator — Custom Resource Pack Maker",
+    index: "Totem Maker — choose your device",
+    getting_skin: "Minecraft Animated Totem Generator — Custom Resource Pack Maker",
     editor: "Totem Maker — animation editor",
     pack: "Totem Maker — resource pack",
     done: "Totem Maker — pack ready",
+  },
+  welcome: {
+    title: "What are you using right now",
+    mobile: "Smartphone",
+    desktop: "PC",
+    groupAria: "Device selection",
   },
   lang: { switcher: "Language", ru: "RU", en: "EN" },
   layout: { switcher: "Layout", mobile: "M", desktop: "PC" },
@@ -15,6 +22,9 @@ window.TOTEM_LANG_EN = {
     lead: "Upload a standard Minecraft skin — we will automatically turn it into a totem",
     upload: "Upload skin",
     uploadTitle: "Standard 64×64 skin",
+    continueWithoutSkin: "Continue without skin",
+    continueWithoutSkinTitle: "Default Minecraft totem texture",
+    errDefaultTotem: "Could not load the default totem texture",
     framesTitle: "Animation frames",
     framesHint: "How many frames in the totem? From 2 to 16.",
     replaceImage: "Replace image",

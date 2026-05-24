@@ -1,9 +1,16 @@
 window.TOTEM_LANG_RU = {
   page: {
-    index: "Создать анимированный тотем Майнкрафт онлайн — Генератор ресурспаков",
+    index: "Totem Maker — выбор устройства",
+    getting_skin: "Создать анимированный тотем Майнкрафт онлайн — Генератор ресурспаков",
     editor: "Totem Maker — редактор анимации",
     pack: "Totem Maker — ресурспак",
     done: "Totem Maker — ресурспак готов",
+  },
+  welcome: {
+    title: "Что вы используете сейчас",
+    mobile: "Смартфон",
+    desktop: "ПК",
+    groupAria: "Выбор устройства",
   },
   lang: { switcher: "Язык", ru: "RU", en: "EN" },
   layout: { switcher: "Вид", mobile: "М", desktop: "ПК" },
@@ -15,6 +22,9 @@ window.TOTEM_LANG_RU = {
     lead: "Загрузите стандартный скин Minecraft — мы автоматически сделаем из него тотем",
     upload: "Загрузить скин",
     uploadTitle: "Стандартный скин 64x64",
+    continueWithoutSkin: "Продолжить без скина",
+    continueWithoutSkinTitle: "Стандартная текстура тотема Minecraft",
+    errDefaultTotem: "Не удалось загрузить текстуру тотема",
     framesTitle: "Кадры анимации",
     framesHint: "Сколько кадров будет в тотеме? От 2 до 16.",
     replaceImage: "Заменить изображение",

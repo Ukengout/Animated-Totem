@@ -11,6 +11,27 @@ html.layout-mobile-active body.landing-with-marquee .preview-header {
   z-index: 20;
 }
 
+html.layout-mobile-active body[data-i18n-page="getting_skin"] .site-top-bar {
+  top: calc(var(--marquee-band-h) + 10px);
+  left: 10px;
+  right: 10px;
+}
+
+html.layout-mobile-active body[data-i18n-page="getting_skin"] .site-top-bar--lang-only {
+  justify-content: flex-end;
+}
+
+html.layout-mobile-active body[data-i18n-page="getting_skin"] .site-top-bar .lang-switcher {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
+html.layout-mobile-active .device-pick-page > .lang-switcher {
+  top: 16px;
+  right: 10px;
+}
+
 html.layout-mobile-active body.landing-with-marquee:not(.editor-page) .app-shell,
 html.layout-mobile-active body.landing-with-marquee:not(.editor-page) .app-shell[style] {
   display: flex;
@@ -22,7 +43,7 @@ html.layout-mobile-active body.landing-with-marquee:not(.editor-page) .app-shell
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
-  padding-top: calc(var(--marquee-band-h) + 56px);
+  padding-top: calc(var(--marquee-band-h) + 52px);
   padding-bottom: calc(var(--marquee-band-h) + 72px);
   padding-left: 12px;
   padding-right: 12px;
@@ -55,12 +76,41 @@ html.layout-mobile-active .export-card--done {
   margin: auto 0;
 }
 
+html.layout-mobile-active body[data-i18n-page="done"].landing-with-marquee {
+  padding-top: var(--marquee-band-h);
+  padding-bottom: var(--marquee-band-h);
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+html.layout-mobile-active body[data-i18n-page="done"] .app-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--marquee-band-h) + 16px) 12px calc(var(--marquee-band-h) + 16px);
+  position: relative;
+  z-index: 10;
+}
+
+html.layout-mobile-active body.export-ready--mobile .export-download-btn {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin-top: 12px;
+  padding: 14px 16px 12px;
+  font-size: 10px;
+  box-sizing: border-box;
+}
+
 /* ленты поверх модалки (полосы остаются видимыми) */
 html.layout-mobile-active .totem-marquee-band {
   z-index: 400;
 }
 
-html.layout-mobile-active body[data-i18n-page="index"] .totem-marquee-band {
+html.layout-mobile-active body[data-i18n-page="getting_skin"] .totem-marquee-band {
   display: block;
 }
 
@@ -135,29 +185,39 @@ html.layout-mobile-active body[data-i18n-page="pack"].landing-with-marquee .tote
   display: block;
 }
 
-/* редактор — ленты (только мобильный режим) */
-html.layout-mobile-active body.editor-page {
-  padding-top: var(--marquee-band-h);
-  padding-bottom: var(--marquee-band-h);
-  box-sizing: border-box;
-  min-height: 100vh;
+html.layout-mobile-active body.editor-page .frame-picker-modal {
+  padding: 12px 10px;
 }
 
-html.layout-mobile-active body.editor-page .totem-marquee-band {
-  display: block;
+html.layout-mobile-active body.editor-page .frame-picker-modal__backdrop {
+  top: 0;
+  bottom: 0;
+}
+
+html.layout-mobile-active body.editor-page.has-site-support {
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 html.layout-mobile-active body.editor-page .editor-header--dock {
-  position: relative;
-  top: auto;
+  position: sticky;
+  top: 0;
   left: auto;
   right: auto;
   flex-shrink: 0;
-  z-index: 40;
+  z-index: 50;
+  margin-top: 0;
 }
 
 html.layout-mobile-active body.editor-page .editor-body {
   position: relative;
+  flex: 1;
+  min-height: 0;
   margin-top: 0;
   flex-direction: row;
   align-items: stretch;
@@ -171,6 +231,11 @@ html.layout-mobile-active .editor-page .editor-header .btn--ghost {
   max-width: 48px;
 }
 
+html.layout-mobile-active body.editor-page .totem-marquee-band,
+html.layout-mobile-active body.editor-page .totem-marquee-panel {
+  display: none !important;
+}
+
 html.layout-mobile-active .editor-page .sidebar--dock {
   position: absolute;
   top: 0;
@@ -179,6 +244,8 @@ html.layout-mobile-active .editor-page .sidebar--dock {
   height: auto;
   padding: 0 0 10px;
   z-index: 25;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -304,31 +371,53 @@ html.layout-mobile-active .editor-wrapper {
 
 html.layout-mobile-active .editor-page .viewport {
   justify-content: flex-start;
-  align-items: center;
-  padding: 8px 6px 16px;
+  align-items: stretch;
+  padding: 0;
   min-height: 0;
   flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-html.layout-mobile-active .editor-page .canvas-container {
-  padding-top: calc(var(--editor-frame-display, 160) * 1px * 1);
-  box-sizing: content-box;
-}
-
-html.layout-mobile-active .editor-page .editor-body {
-  flex: 1;
-  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
+html.layout-mobile-active .editor-page .viewport.viewport--with-sidebar {
+  margin-left: var(--editor-sidebar-w);
+  width: calc(100% - var(--editor-sidebar-w));
+}
+
+html.layout-mobile-active .editor-page .canvas-container {
+  padding-top: 0;
+  box-sizing: content-box;
+  contain: layout paint;
+  transform: translateZ(0);
+}
+
+html.layout-mobile-active .editor-page .editor-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  justify-content: center;
+}
+
+html.layout-mobile-active .editor-page #editorCanvas {
+  transform: translateZ(0);
+}
+
+html.layout-mobile-active .editor-page .frame-highlight {
+  transform: translateZ(0);
+  will-change: top;
+}
+
 html.layout-mobile-active .editor-workspace {
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
   gap: 0;
+  overflow: hidden;
 }
 
 html.layout-mobile-active .size-control label {
@@ -343,10 +432,11 @@ html.layout-mobile-active .size-control strong {
 /* предпросмотр — последний «кадр» в ленте прокрутки */
 html.layout-mobile-active .editor-preview-panel--frame-tail {
   position: relative;
-  width: 160px;
-  max-width: 100%;
-  margin: calc(var(--editor-frame-display, 160) * 1px * 0.08) auto 0;
-  padding: 10px 8px 12px;
+  width: calc(100% - 8px);
+  max-width: none;
+  margin: 8px auto 0;
+  flex-shrink: 0;
+  padding: 12px 14px 14px;
   box-sizing: border-box;
   background: var(--editor-surface);
   border: 2px solid #000;
@@ -361,10 +451,11 @@ html.layout-mobile-active .editor-preview-title {
 }
 
 html.layout-mobile-active .scene--editor-preview {
-  width: 160px;
-  height: 192px;
-  min-height: 192px;
-  max-height: 192px;
+  width: 100%;
+  max-width: 100%;
+  height: min(300px, 46vh);
+  min-height: 280px;
+  max-height: 320px;
   flex: 0 0 auto;
   margin: 0 auto 8px;
   overflow: hidden;
@@ -374,17 +465,17 @@ html.layout-mobile-active .scene--editor-preview {
 }
 
 html.layout-mobile-active .scene--editor-preview #totemStack {
-  width: 128px;
-  height: 128px;
-  max-width: 128px;
-  max-height: 128px;
+  width: 100%;
+  height: 100%;
+  max-width: 260px;
+  max-height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 html.layout-mobile-active .scene--editor-preview .totem-preview-host {
-  transform: scale(0.82);
+  transform: none;
   transform-origin: center center;
 }
 
@@ -397,8 +488,9 @@ html.layout-mobile-active .scene--editor-preview .totem-preview-host canvas {
 html.layout-mobile-active .editor-preview-panel--frame-tail .preview-speed-control {
   width: 100%;
   max-width: none;
-  padding: 8px 6px 6px;
-  gap: 6px;
+  padding: 10px 8px 8px;
+  gap: 8px;
+  box-sizing: border-box;
 }
 
 html.layout-mobile-active .editor-preview-panel--frame-tail .preview-speed-control label {

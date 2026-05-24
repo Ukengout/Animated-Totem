@@ -99,6 +99,7 @@
   function boot() {
     if (document.querySelector(".lang-switcher")) initLangSwitcher();
     else apply();
+    if (global.TotemLayout) global.TotemLayout.initSwitcher();
   }
 
   global.TotemI18n = { getLang: getLang, setLang: setLang, t: t, apply: apply, boot: boot, initLangSwitcher: initLangSwitcher };

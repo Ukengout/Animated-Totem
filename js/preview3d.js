@@ -22,7 +22,8 @@
       const y0 = clamp(frameIndex, 0, maxFrame) * rowH;
       ctx.drawImage(source, 0, y0, frameW, rowH, 0, 0, frameW, frameH);
     } else if (source instanceof HTMLImageElement) {
-      const y0 = frameIndex * frameH;
+      const srcH = source.naturalHeight || source.height;
+      const y0 = srcH <= frameH ? 0 : clamp(frameIndex * frameH, 0, srcH - frameH);
       ctx.drawImage(source, 0, y0, frameW, frameH, 0, 0, frameW, frameH);
     }
 

@@ -17,10 +17,10 @@
       ><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
     /></noscript>
     <script src="js/layout-boot.js"></script>
-    <link rel="stylesheet" href="css/main.css?v=1.0.0" />
-    <link rel="stylesheet" href="css/mobile.css?v=1.0.0" />
-    <link rel="stylesheet" href="css/layout-overrides.css?v=1.0.0" />
-    <link rel="stylesheet" href="css/mobile-layout.css?v=1.0.0" />
+    <link rel="stylesheet" href="css/main.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/layout-overrides.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile-layout.css?v=1.0.1" />
     <script src="js/layout.js"></script>
     <script src="lang/ru.js"></script>
     <script src="lang/en.js"></script>
@@ -78,13 +78,66 @@
         return Math.max(MIN_PACK_FORMAT, pf);
       }
 
-      function showReady(downloadUrl, filename) {
+      let zipBlob = null;
+      let zipObjectUrl = null;
+      let zipFilename = "Totem.zip";
+
+      function isMobileDownloadContext() {
+        if (window.TotemLayout && typeof window.TotemLayout.isMobile === "function") {
+          return window.TotemLayout.isMobile();
+        }
+        return window.innerWidth <= 768;
+      }
+
+      function revokeZipObjectUrl() {
+        if (zipObjectUrl) {
+          URL.revokeObjectURL(zipObjectUrl);
+          zipObjectUrl = null;
+        }
+      }
+
+      async function triggerZipDownload() {
+        if (!zipBlob) return false;
+
+        const file = new File([zipBlob], zipFilename, { type: "application/zip" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: zipFilename });
+            return true;
+          } catch (err) {
+            if (err && err.name === "AbortError") return false;
+          }
+        }
+
+        revokeZipObjectUrl();
+        zipObjectUrl = URL.createObjectURL(zipBlob);
+        const link = document.createElement("a");
+        link.href = zipObjectUrl;
+        link.download = zipFilename;
+        link.rel = "noopener";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return true;
+      }
+
+      function showReady(blob, filename) {
         document.getElementById("loadingBlock").hidden = true;
         document.getElementById("errorBlock").hidden = true;
         document.getElementById("readyBlock").hidden = false;
+
+        zipBlob = blob;
+        zipFilename = filename;
+        revokeZipObjectUrl();
+        zipObjectUrl = URL.createObjectURL(blob);
+
         const btn = document.getElementById("downloadBtn");
-        btn.href = downloadUrl;
+        btn.href = zipObjectUrl;
         btn.download = filename;
+        document.body.classList.toggle("export-ready--mobile", isMobileDownloadContext());
+
+        if (isMobileDownloadContext()) return;
         setTimeout(() => btn.click(), 800);
       }
 
@@ -95,6 +148,15 @@
         document.getElementById("errorStatus").innerText = title;
         document.getElementById("errorDesc").innerText = detail || "";
       }
+
+      document.getElementById("downloadBtn").addEventListener("click", function (e) {
+        if (!zipBlob) return;
+        if (!isMobileDownloadContext()) return;
+        e.preventDefault();
+        triggerZipDownload();
+      });
+
+      window.addEventListener("pagehide", revokeZipObjectUrl);
 
       window.onload = async () => {
         TotemI18n.boot();
@@ -149,9 +211,8 @@
           }
 
           const content = await zip.generateAsync({ type: "blob" });
-          const url = URL.createObjectURL(content);
           const safeNick = nickname.replace(/[/\\:*?"<>|]/g, "_").slice(0, 48);
-          showReady(url, `Totem_${safeNick}.zip`);
+          showReady(content, `Totem_${safeNick}.zip`);
         } catch (err) {
           console.error(err);
           showError(TotemI18n.t("done.errBuild"), String(err.message || err));
