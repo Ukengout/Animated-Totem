@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Totem Maker</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png" />
+    <script src="js/layout-boot.js?v=1.0.5"></script>
+    <script>
+      (function () {
+        if (/\bpick=1\b/.test(location.search)) return;
+        location.replace("getting_skin.html");
+      })();
+    </script>
+    <link rel="stylesheet" href="css/main.css?v=1.0.2" />
+    <script src="lang/ru.js?v=1.0.3"></script>
+    <script src="lang/en.js?v=1.0.3"></script>
+    <script src="js/lang.js?v=1.0.3"></script>
+  </head>
+  <body class="device-pick-page" data-i18n-page="index">
+    <div class="lang-switcher lang-switcher--device-pick" role="group">
+      <button type="button" class="lang-switcher__btn" data-lang="ru" data-i18n="lang.ru">RU</button>
+      <button type="button" class="lang-switcher__btn" data-lang="en" data-i18n="lang.en">EN</button>
+    </div>
+
+    <main class="device-pick-shell">
+      <div class="glass-panel device-pick-panel">
+        <h1 class="device-pick-title" data-i18n="welcome.title">Что вы используете сейчас</h1>
+        <p class="device-pick-hint" data-i18n="welcome.pickHint">Если версия подобралась неверно, выберите вручную:</p>
+        <div class="device-pick-actions" role="group" data-i18n-aria="welcome.groupAria">
+          <button type="button" class="btn btn--mc-green btn--mc-block device-pick-btn" data-device="mobile">
+            <span class="device-pick-btn__icon" aria-hidden="true">📲</span>
+            <span data-i18n="welcome.mobile">Смартфон</span>
+          </button>
+          <button type="button" class="btn btn--mc-green btn--mc-block device-pick-btn" data-device="desktop">
+            <span class="device-pick-btn__icon" aria-hidden="true">🖥️</span>
+            <span data-i18n="welcome.desktop">ПК</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.querySelectorAll("[data-device]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var mode = btn.getAttribute("data-device");
+          if (mode !== "mobile" && mode !== "desktop") return;
+          sessionStorage.setItem("totemLayout", mode);
+          window.location.href = "getting_skin.html";
+        });
+      });
+
+      TotemI18n.boot();
+    </script>
+  </body>
+</html>

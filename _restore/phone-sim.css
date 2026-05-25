@@ -1,0 +1,186 @@
+/* симуляция смартфона на десктопе */
+
+html.phone-sim-active {
+  --marquee-band-h: 48px;
+  --marquee-band-item: 40px;
+  background: #0e0c0a;
+  min-height: 100%;
+}
+
+html.phone-sim-active body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 12px 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+html.phone-sim-active body.has-site-support {
+  padding-bottom: 12px;
+}
+
+html.phone-sim-active .site-top-bar {
+  width: 390px;
+  max-width: calc(100vw - 24px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+html.phone-sim-active .site-top-bar .layout-switcher,
+html.phone-sim-active .site-top-bar .lang-switcher {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  margin: 0;
+  flex-shrink: 0;
+  display: flex;
+}
+
+.phone-sim {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 390px;
+  max-width: calc(100vw - 24px);
+  height: min(844px, calc(100vh - 120px));
+  min-height: 560px;
+  flex: 0 0 auto;
+  background: var(--mc-sign-bg);
+  border-radius: 36px;
+  box-shadow:
+    0 0 0 3px #0a0806,
+    0 0 0 11px #2a241c,
+    0 0 0 13px #4a4034,
+    0 28px 80px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+  transform: translateZ(0);
+  isolation: isolate;
+  box-sizing: border-box;
+}
+
+.phone-sim::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  z-index: 400;
+  width: 64px;
+  height: 5px;
+  margin-left: -32px;
+  background: #080604;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+html.phone-sim-active #phoneSim .totem-marquee-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: var(--marquee-band-h);
+  z-index: 10;
+}
+
+html.phone-sim-active #phoneSim .totem-marquee-band--top {
+  top: 0;
+}
+
+html.phone-sim-active #phoneSim .totem-marquee-band--bottom {
+  bottom: 0;
+}
+
+html.phone-sim-active.layout-mobile-active #phoneSim {
+  padding-top: var(--marquee-band-h);
+  padding-bottom: calc(var(--marquee-band-h) + 56px);
+}
+
+html.phone-sim-active.layout-mobile-active body.landing-with-marquee {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+html.phone-sim-active #phoneSim .app-shell,
+html.phone-sim-active #phoneSim .preview-header {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html.phone-sim-active #phoneSim .landing-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  padding: 24px 12px 10px;
+  box-sizing: border-box;
+}
+
+html.phone-sim-active #phoneSim .landing-hero > .landing-subtitle {
+  margin-bottom: 8px;
+  font-size: 6px;
+  line-height: 1.5;
+  padding: 0 4px;
+}
+
+html.phone-sim-active #phoneSim .landing-panel {
+  width: 100%;
+  max-width: 100%;
+  padding: 14px 10px 16px;
+  box-sizing: border-box;
+}
+
+html.phone-sim-active #phoneSim .landing-panel h1 {
+  font-size: 8px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
+}
+
+html.phone-sim-active #phoneSim .landing-panel .lead {
+  font-size: 7px;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+html.phone-sim-active #phoneSim .landing-panel .landing-upload-btn {
+  min-height: 44px;
+  font-size: 9px;
+}
+
+html.phone-sim-active #phoneSim .site-support-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--marquee-band-h) + 8px);
+  width: auto;
+  max-width: none;
+  margin: 0;
+  transform: none;
+  z-index: 20;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+html.phone-sim-active #phoneSim .site-support-bar .btn--site-support {
+  pointer-events: auto;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 7px;
+  line-height: 1.45;
+  padding: 10px 8px 8px;
+  text-align: center;
+}

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Бесплатный онлайн-инструмент для создания кастомных анимированных тотемов в Minecraft Java. Настрой свою анимацию и скачай готовый ресурспак для любой версии!"
+      data-i18n-meta="index.seoDescription"
+    />
+    <title>Создать анимированный тотем Майнкрафт онлайн — Генератор ресурспаков</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript
+      ><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+    /></noscript>
+    <script src="js/layout-boot.js?v=1.0.5"></script>
+    <link rel="stylesheet" href="css/main.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile.css?v=1.0.2" />
+    <link rel="stylesheet" href="css/layout-overrides.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile-layout.css?v=1.0.2" />
+    <script src="js/layout.js"></script>
+    <script src="lang/ru.js?v=1.0.3"></script>
+    <script src="lang/en.js?v=1.0.3"></script>
+    <script src="js/lang.js?v=1.0.3"></script>
+  </head>
+  <body class="landing-with-marquee has-site-support" data-i18n-page="getting_skin">
+    <div class="site-top-bar site-top-bar--lang-only">
+      <div class="lang-switcher" role="group">
+        <button type="button" class="lang-switcher__btn" data-lang="ru" data-i18n="lang.ru">RU</button>
+        <button type="button" class="lang-switcher__btn" data-lang="en" data-i18n="lang.en">EN</button>
+      </div>
+    </div>
+
+    <div class="app-shell landing-hero">
+      <h2 class="landing-subtitle" data-i18n="index.subtitle">
+        Онлайн-конструктор ресурспаков для всех версий Java Edition
+      </h2>
+      <div class="glass-panel landing-panel">
+        <h1 data-i18n="index.title">Создай свой анимированный тотем для Minecraft</h1>
+        <p class="lead" data-i18n="index.lead">
+          Загрузите стандартный скин Minecraft — мы автоматически сделаем из него тотем
+        </p>
+
+        <div id="uploadInitial">
+          <button
+            type="button"
+            class="btn btn--mc-green btn--mc-block landing-upload-btn"
+            onclick="document.getElementById('load_skin').click()"
+            data-i18n="index.upload"
+            data-i18n-title="index.uploadTitle"
+          >
+            Загрузить скин
+          </button>
+        </div>
+
+        <input type="file" id="load_skin" accept="image/png" style="display: none" />
+      </div>
+    </div>
+
+    <div id="framePickerModal" class="frame-picker-modal" hidden>
+      <div class="frame-picker-modal__backdrop" aria-hidden="true"></div>
+      <div class="frame-picker-card glass-panel">
+        <div class="scene scene--frame-picker" id="scene">
+          <div id="totemStack"></div>
+        </div>
+        <h2 data-i18n="index.framesTitle">Кадры анимации</h2>
+        <p data-i18n="index.framesHint">Сколько кадров будет в тотеме? От 2 до 16.</p>
+        <input class="frame-picker-range" type="range" id="frameCountRange" min="2" max="16" value="11" />
+        <strong class="frame-picker-value" id="frameCountValue">11</strong>
+        <button
+          class="btn btn--mc-gray btn--mc-block frame-picker-replace-btn"
+          type="button"
+          onclick="document.getElementById('load_skin').click()"
+          data-i18n="index.replaceImage"
+        >
+          Заменить изображение
+        </button>
+        <button class="btn btn--mc-green btn--mc-block" type="button" id="frameCountConfirm" data-i18n="index.continue">Продолжить</button>
+      </div>
+    </div>
+
+    <canvas id="tempCanvas" width="16" height="176" class="totem-strip-canvas" aria-hidden="true"></canvas>
+
+    <aside class="site-support-bar" data-i18n-aria="support.aria">
+      <a
+        class="btn btn--mc-orange btn--site-support"
+        href="https://boosty.to/ukengout"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-i18n="support.btn"
+        >Поддержать автора</a
+      >
+    </aside>
+
+    <script src="js/marquee.js"></script>
+    <script src="js/preview3d.js?v=1.0.3"></script>
+    <script>
+      const tempCanvas = document.getElementById("tempCanvas"),
+        tCtx = tempCanvas.getContext("2d");
+      const totemStack = document.getElementById("totemStack");
+      const framePickerModal = document.getElementById("framePickerModal");
+      const frameCountRange = document.getElementById("frameCountRange");
+      const frameCountValue = document.getElementById("frameCountValue");
+
+      let pendingSkinImage = null;
+      const rotation = { rotX: -15, rotY: 25 };
+      let frameCount = clampFrameCount(parseInt(localStorage.getItem("totemFrameCount") || "11", 10));
+
+      function clampFrameCount(n) {
+        if (!Number.isFinite(n)) return 11;
+        return Math.min(16, Math.max(2, n));
+      }
+
+      function syncFrameCountUi() {
+        frameCountRange.value = String(frameCount);
+        frameCountValue.textContent = String(frameCount);
+      }
+
+      function waitForModalLayout() {
+        return new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
+      }
+
+      async function showFramePicker() {
+        syncFrameCountUi();
+        framePickerModal.hidden = false;
+        await waitForModalLayout();
+        try {
+          await update3DView();
+        } catch (err) {
+          console.error("3D preview:", err);
+        }
+      }
+
+      function rebuildPendingTexture() {
+        if (pendingSkinImage) buildPerfect(pendingSkinImage, frameCount);
+      }
+
+      frameCountRange.addEventListener("input", () => {
+        frameCount = clampFrameCount(parseInt(frameCountRange.value, 10));
+        frameCountValue.textContent = String(frameCount);
+        if (pendingSkinImage) {
+          rebuildPendingTexture();
+          update3DView();
+        }
+      });
+
+      document.getElementById("frameCountConfirm").addEventListener("click", () => {
+        if (!pendingSkinImage) return;
+        frameCount = clampFrameCount(parseInt(frameCountRange.value, 10));
+        localStorage.setItem("totemFrameCount", String(frameCount));
+        rebuildPendingTexture();
+        nextStep();
+      });
+
+      document.getElementById("load_skin").onchange = (e) => {
+        if (!e.target.files.length) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = async () => {
+            pendingSkinImage = img;
+            buildPerfect(pendingSkinImage, frameCount);
+            document.getElementById("uploadInitial").style.display = "none";
+            await showFramePicker();
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+        e.target.value = "";
+      };
+
+      function buildPerfect(img, frames = frameCount) {
+        let t = img;
+        if (img.width !== img.height) {
+          const tc = document.createElement("canvas");
+          tc.width = 64;
+          tc.height = 64;
+          tc.getContext("2d").drawImage(img, 0, 0);
+          t = tc;
+        }
+        const r = t.width / 64;
+        const frameH = frames * 16;
+        tempCanvas.height = frameH;
+        tCtx.clearRect(0, 0, 16, frameH);
+        const s = document.createElement("canvas");
+        s.width = s.height = t.width;
+        const sc = s.getContext("2d");
+        sc.translate(s.width, 0);
+        sc.rotate(Math.PI / 2);
+        sc.drawImage(t, 0, 0);
+        const f = document.createElement("canvas");
+        f.width = f.height = t.width;
+        const fc = f.getContext("2d");
+        fc.translate(f.width, f.height);
+        fc.rotate(Math.PI);
+        fc.drawImage(s, 0, 0);
+        const isSlim = (function () {
+          const c = document.createElement("canvas");
+          c.width = t.width;
+          c.height = t.width;
+          const x = c.getContext("2d");
+          x.drawImage(t, 0, 0);
+          return x.getImageData(42 * r, 48 * r, 1, 1).data === 0;
+        })();
+        for (let i = 0; i < frames; i++) {
+          const y = i * 16;
+          tCtx.drawImage(t, 8 * r, 8 * r, 8 * r, 8 * r, 4, 1 + y, 8, 8);
+          tCtx.drawImage(t, 40 * r, 8 * r, 8 * r, 8 * r, 4, 1 + y, 8, 8);
+          tCtx.drawImage(t, 20 * r, 20 * r, 8 * r, 1, 4, 9 + y, 8, 1);
+          tCtx.drawImage(t, 20 * r, 23 * r, 8 * r, 1, 4, 10 + y, 8, 1);
+          tCtx.drawImage(t, 20 * r, 29 * r, 8 * r, 1, 4, 11 + y, 8, 1);
+          tCtx.drawImage(t, 20 * r, 31 * r, 8 * r, 1, 4, 12 + y, 8, 1);
+          tCtx.drawImage(t, 20 * r, 36 * r, 8 * r, 1, 4, 9 + y, 8, 1);
+          tCtx.drawImage(t, 5 * r, 20 * r, 3 * r, 2, 5, 13 + y, 3, 2);
+          tCtx.drawImage(t, 6 * r, 31 * r, 2 * r, 1, 6, 15 + y, 2, 1);
+          tCtx.drawImage(t, 20 * r, 52 * r, 3 * r, 2, 8, 13 + y, 3, 2);
+          tCtx.drawImage(t, 20 * r, 63 * r, 2 * r, 1, 8, 15 + y, 2, 1);
+          tCtx.drawImage(t, 5 * r, 36 * r, 3 * r, 2, 5, 13 + y, 3, 2);
+          tCtx.drawImage(t, 4 * r, 52 * r, 3 * r, 2, 8, 13 + y, 3, 2);
+          tCtx.drawImage(s, 44 * r - 2, 44 * r, 2, 3, 2, 8 + y, 2, 3);
+          tCtx.drawImage(s, 32 * r, 44 * r, 1, 2, 1, 8 + y, 1, 2);
+          tCtx.drawImage(s, 28 * r - 2, 44 * r, 2, 3, 2, 8 + y, 2, 3);
+          tCtx.drawImage(f, 52 * r, isSlim ? 25 * r : 24 * r, 2, 3, 12, 8 + y, 2, 3);
+          tCtx.drawImage(f, 63 * r, isSlim ? 25 * r : 24 * r, 1, 2, 14, 8 + y, 1, 2);
+          tCtx.drawImage(f, 52 * r, isSlim ? 9 * r : 8 * r, 2, 3, 12, 8 + y, 2, 3);
+        }
+      }
+
+      function update3DView() {
+        return TotemPreview3D.build(totemStack, tempCanvas, {
+          frameW: 16,
+          frameH: 16,
+          frameIndex: 0,
+          totalFrames: frameCount,
+          pixelSize: 14,
+          rotX: rotation.rotX,
+          rotY: rotation.rotY,
+        });
+      }
+
+      TotemPreview3D.setupDragRotation(document.getElementById("scene"), totemStack, rotation);
+
+      function nextStep() {
+        localStorage.setItem("totemTexture", tempCanvas.toDataURL("image/png"));
+        localStorage.setItem("totemFrameCount", String(frameCount));
+        window.location.href = "animation_editor.html";
+      }
+
+      function downloadTotem16x16() {
+        if (!pendingSkinImage) return;
+        buildPerfect(pendingSkinImage, 1);
+        const out = document.createElement("canvas");
+        out.width = 16;
+        out.height = 16;
+        const octx = out.getContext("2d");
+        octx.imageSmoothingEnabled = false;
+        octx.drawImage(tempCanvas, 0, 0, 16, 16, 0, 0, 16, 16);
+        const link = document.createElement("a");
+        link.download = "totem_16x16.png";
+        link.href = out.toDataURL("image/png");
+        link.click();
+        rebuildPendingTexture();
+        if (!framePickerModal.hidden) update3DView();
+      }
+
+      let totemDlChordArmed = false;
+      let totemDlChordTimer = null;
+
+      window.addEventListener("keydown", (e) => {
+        if (!e.ctrlKey || e.altKey || e.metaKey) return;
+        const key = e.key;
+        if (key === "6") {
+          totemDlChordArmed = true;
+          clearTimeout(totemDlChordTimer);
+          totemDlChordTimer = setTimeout(() => {
+            totemDlChordArmed = false;
+          }, 1500);
+          return;
+        }
+        if (key === "7" && totemDlChordArmed) {
+          e.preventDefault();
+          totemDlChordArmed = false;
+          clearTimeout(totemDlChordTimer);
+          downloadTotem16x16();
+        }
+      });
+
+      TotemI18n.boot();
+    </script>
+  </body>
+</html>
