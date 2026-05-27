@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Бесплатный конструктор анимированного тотема Minecraft из вашего скина — без OptiFine на 1.21.4+, с настройкой анимации и готовым ресурспаком."
+      data-i18n-meta="intro.seoDescription"
+    />
+    <title>Totem Maker — анимированный тотем из скина</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript
+      ><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+    /></noscript>
+    <script src="js/layout-boot.js?v=1.0.5"></script>
+    <link rel="stylesheet" href="css/main.css?v=1.0.4" />
+    <link rel="stylesheet" href="css/mobile.css?v=1.0.4" />
+    <link rel="stylesheet" href="css/layout-overrides.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile-layout.css?v=1.0.4" />
+    <script src="js/layout.js"></script>
+    <script src="lang/ru.js?v=1.0.4"></script>
+    <script src="lang/en.js?v=1.0.4"></script>
+    <script src="js/lang.js?v=1.0.4"></script>
+  </head>
+  <body class="landing-with-marquee landing-intro-page" data-i18n-page="index">
+    <div class="site-top-bar site-top-bar--lang-only">
+      <div class="lang-switcher" role="group">
+        <button type="button" class="lang-switcher__btn" data-lang="ru" data-i18n="lang.ru">RU</button>
+        <button type="button" class="lang-switcher__btn" data-lang="en" data-i18n="lang.en">EN</button>
+      </div>
+    </div>
+
+    <div class="app-shell landing-hero landing-intro-hero">
+      <article class="landing-intro-content">
+        <div class="intro-totems" aria-hidden="true">
+          <canvas class="intro-totem-canvas intro-totem-canvas--left" data-src="assets/intro-totem-2.png"></canvas>
+          <canvas class="intro-totem-canvas intro-totem-canvas--center" data-src="assets/intro-totem-1.png"></canvas>
+          <canvas class="intro-totem-canvas intro-totem-canvas--right" data-src="assets/intro-totem-3.png"></canvas>
+        </div>
+        <h1 class="landing-intro-title" data-i18n="intro.title">
+          Вы бы хотели создать анимированный тотем с вашим скином?
+        </h1>
+        <div class="landing-intro-body" data-i18n-html="intro.body">
+          <p>
+            Если да, то вам повезло,
+            <a href="https://boosty.to/ukengout" target="_blank" rel="noopener noreferrer">автор</a>
+            создал сайт-конструктор ресурспака на анимированный 2D тотем с любым скином Minecraft, как у многих
+            ютуберов. Более того, раньше такие ресурспаки требовали OptiFine, но на этом сайте вы можете создать
+            такой ресурспак без этого мода — благодаря новой системе item model definitions, добавленной в 1.21.4, на
+            замену CIT. Вы сами настраиваете анимацию тотема, и самое главное: сайт абсолютно БЕСПЛАТНЫЙ.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn btn--mc-green btn--mc-block btn--start-glow landing-intro-start"
+          data-i18n="intro.start"
+          id="introStartBtn"
+          >Начать</button
+        >
+      </article>
+    </div>
+
+    <script src="js/marquee.js"></script>
+    <script>
+      const INTRO_TOTEM_MS = 200;
+      const INTRO_TOTEM_SCALE = 10;
+
+      function mountIntroTotemAnimation(canvas) {
+        const src = canvas.dataset.src;
+        if (!src) return;
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.onload = () => {
+          const frameW = img.naturalWidth || img.width;
+          const frameH = frameW;
+          const frames = Math.max(1, Math.floor((img.naturalHeight || img.height) / frameH));
+          canvas.width = frameW;
+          canvas.height = frameH;
+          canvas.style.width = `${Math.round(frameW * INTRO_TOTEM_SCALE)}px`;
+          canvas.style.height = `${Math.round(frameH * INTRO_TOTEM_SCALE)}px`;
+          ctx.imageSmoothingEnabled = false;
+          let frame = 0;
+          const render = () => {
+            ctx.clearRect(0, 0, frameW, frameH);
+            ctx.drawImage(img, 0, frame * frameH, frameW, frameH, 0, 0, frameW, frameH);
+            frame = (frame + 1) % frames;
+          };
+          render();
+          setInterval(render, INTRO_TOTEM_MS);
+        };
+        img.src = src;
+      }
+
+      document.querySelectorAll(".intro-totem-canvas").forEach(mountIntroTotemAnimation);
+      document.getElementById("introStartBtn").addEventListener("click", () => {
+        window.location.href = "getting_skin.html";
+      });
+
+      TotemI18n.boot();
+    </script>
+  </body>
+</html>

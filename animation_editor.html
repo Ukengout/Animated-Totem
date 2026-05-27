@@ -1,0 +1,1171 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Totem Maker — редактор анимации</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript
+      ><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+    /></noscript>
+    <script src="js/layout-boot.js?v=1.0.5"></script>
+    <link rel="stylesheet" href="css/main.css?v=1.0.4" />
+    <link rel="stylesheet" href="css/mobile.css?v=1.0.4" />
+    <link rel="stylesheet" href="css/layout-overrides.css?v=1.0.1" />
+    <link rel="stylesheet" href="css/mobile-layout.css?v=1.0.4" />
+    <script src="js/layout.js"></script>
+    <script src="lang/ru.js"></script>
+    <script src="lang/en.js"></script>
+    <script src="js/lang.js"></script>
+  </head>
+  <body class="app-shell--stretch editor-page has-site-support" data-i18n-page="editor">
+    <header class="editor-header editor-header--dock">
+      <button class="btn btn--ghost" type="button" id="editorBackBtn" data-i18n="editor.back">← Назад</button>
+
+      <div class="hist-row hist-row--header">
+        <button class="hist-btn" id="undoBtn" disabled type="button" data-i18n-title="editor.undoTitle" data-i18n-aria="editor.undoAria">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 6L4 12L10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" />
+            <path d="M5 12H20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" />
+          </svg>
+        </button>
+        <button class="hist-btn" id="redoBtn" disabled type="button" data-i18n-title="editor.redoTitle" data-i18n-aria="editor.redoAria">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M14 6L20 12L14 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" />
+            <path d="M4 12H19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="flex-spacer"></div>
+      <a
+        class="btn btn--mc-orange btn-header-support"
+        href="https://boosty.to/ukengout"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-i18n="editor.support"
+        >Поддержать автора</a
+      >
+      <button class="btn btn--mc-green btn-header-resource-pack" type="button" onclick="saveAndNext()">
+        <span class="btn-header-resource-pack__full" data-i18n="editor.resourcePack">Настройка ресурспака</span>
+        <span class="btn-header-resource-pack__short" data-i18n="editor.next">Далее</span>
+      </button>
+    </header>
+
+    <div class="editor-body">
+      <aside class="sidebar sidebar--dock" data-i18n-aria="editor.paintAria">
+        <button class="color-wheel" type="button" data-i18n-title="editor.pickColor">
+          <input type="color" id="realColorInput" value="#ffcc00" />
+          <span>+</span>
+        </button>
+        <div class="active-colors" data-i18n-title="editor.colorsTitle">
+          <button class="active-color active-color--primary" id="colorDisplay" type="button" data-i18n-aria="editor.primaryColor"></button>
+          <button class="active-color active-color--secondary" id="secondaryColorDisplay" type="button" data-i18n-aria="editor.secondaryColor"></button>
+        </div>
+        <div class="palette" id="recentPalette" data-i18n-title="editor.recentTitle"></div>
+
+        <div class="selection-tool-row">
+          <button class="tool-btn" id="selectBtn" data-i18n-title="editor.toolSelect" type="button" data-tool="select">
+            <img src="assets/tools/select.png" alt="" draggable="false" />
+          </button>
+          <div class="selection-actions" id="selectionActions" hidden>
+            <button class="tool-btn tool-btn--mini" id="rotateSelLeftBtn" type="button" title="Повернуть выделение влево">
+              ↺
+            </button>
+            <button class="tool-btn tool-btn--mini" id="rotateSelRightBtn" type="button" title="Повернуть выделение вправо">
+              ↻
+            </button>
+          </div>
+        </div>
+        <button class="tool-btn active" id="pencilBtn" data-i18n-title="editor.toolPencil" type="button" data-tool="pencil">
+          <img src="assets/tools/pencil.png" alt="" draggable="false" />
+        </button>
+        <button class="tool-btn" id="eraserBtn" data-i18n-title="editor.toolEraser" type="button" data-tool="eraser">
+          <img src="assets/tools/eraser.png" alt="" draggable="false" />
+        </button>
+        <button class="tool-btn" id="fillBtn" data-i18n-title="editor.toolFill" type="button" data-tool="fill">
+          <img src="assets/tools/fill.png" alt="" draggable="false" />
+        </button>
+        <button class="tool-btn" id="eyedropperBtn" data-i18n-title="editor.toolEyedropper" type="button" data-tool="eyedropper">
+          <img src="assets/tools/eyedropper.png" alt="" draggable="false" />
+        </button>
+        <button class="tool-btn" id="zoomBtn" data-i18n-title="editor.toolZoom" type="button" data-tool="zoom">
+          <img src="assets/tools/zoom.png" alt="" draggable="false" />
+        </button>
+
+        <div class="size-control">
+          <label for="brushSize" data-i18n="editor.size">Размер</label>
+          <input type="range" id="brushSize" min="1" max="6" value="1" />
+          <strong id="brushSizeValue">1 px</strong>
+        </div>
+
+        <a
+          class="btn btn--mc-orange btn-support-vertical sidebar-support-mobile"
+          href="https://boosty.to/ukengout"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-i18n-vertical="support.btnShort"
+          data-i18n-aria="support.aria"
+        ></a>
+      </aside>
+
+      <main class="viewport viewport--with-sidebar viewport--with-preview" id="viewport">
+        <div class="editor-workspace" id="editorWorkspace">
+          <div class="editor-wrapper" id="editorWrapper">
+          <div class="canvas-container" id="canvasContainer">
+            <canvas id="editorCanvas" width="16" height="176"></canvas>
+            <div id="frameHighlight" class="frame-highlight"></div>
+            <div id="brushPreview" class="brush-preview" hidden></div>
+            <div id="selectionBox" class="selection-box">
+              <canvas id="selectionCanvas"></canvas>
+            </div>
+          </div>
+          <div class="labels-column" id="labelsCol"></div>
+          </div>
+
+          <aside class="editor-preview-panel editor-preview-panel--dock editor-preview-panel--frame-tail" data-i18n-aria="editor.previewAria">
+            <div class="editor-preview-title" data-i18n="editor.preview">Предпросмотр</div>
+            <div class="scene scene--editor-preview" id="previewScene">
+              <div id="totemStack"></div>
+            </div>
+            <div class="preview-speed-control">
+              <label for="frameDelay" data-i18n="editor.speed">Скорость</label>
+              <div class="mc-stepper">
+                <button type="button" class="mc-step-btn" id="frameDelayDec" data-i18n-aria="editor.slower">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M10 4 L6 8 L10 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" />
+                  </svg>
+                </button>
+                <input
+                  type="text"
+                  id="frameDelay"
+                  class="mc-step-field"
+                  value="1.0"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  spellcheck="false"
+                  data-i18n-title="editor.frameDelayTitle"
+                />
+                <button type="button" class="mc-step-btn" id="frameDelayInc" data-i18n-aria="editor.faster">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M6 4 L10 8 L6 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" />
+                  </svg>
+                </button>
+              </div>
+              <span class="preview-speed-unit" data-i18n="common.sec">сек</span>
+            </div>
+            <div class="preview-rotate-mode">
+              <button
+                type="button"
+                class="btn btn--ghost preview-rotate-toggle"
+                id="mcRotateToggle"
+                aria-pressed="false"
+                data-i18n-title="editor.rotateTitle"
+              >
+                <span data-i18n="editor.rotate">Вращение</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+    </div>
+    <script src="js/preview3d.js?v=1.0.4"></script>
+    <script>
+      const W = 16,
+        PIXEL = 10;
+      function clampFrameCount(n) {
+        if (!Number.isFinite(n)) return 11;
+        return Math.min(16, Math.max(2, n));
+      }
+
+      const FRAME_COUNT = clampFrameCount(parseInt(localStorage.getItem("totemFrameCount") || "11", 10));
+      const H = FRAME_COUNT * 16;
+      const FRAME_DISPLAY = 16 * PIXEL;
+
+      const canvas = document.getElementById("editorCanvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+      function applyEditorLayout() {
+        canvas.height = H;
+        document.documentElement.style.setProperty("--editor-frame-count", String(FRAME_COUNT));
+        document.documentElement.style.setProperty("--editor-frame-display", String(FRAME_DISPLAY));
+
+        const labelsCol = document.getElementById("labelsCol");
+        const stems = TotemI18n.t("editor.frameStems");
+        const frameWord = TotemI18n.t("editor.frameWord");
+        labelsCol.innerHTML = "";
+        for (let i = 0; i < FRAME_COUNT; i++) {
+          const div = document.createElement("div");
+          div.className = "frame-label";
+          div.textContent = `${stems[i]} ${frameWord}`;
+          labelsCol.appendChild(div);
+        }
+        setPreviewFrame(previewFrame);
+      }
+      const canvasContainer = document.getElementById("canvasContainer");
+      const brushPreview = document.getElementById("brushPreview");
+      const selBox = document.getElementById("selectionBox");
+      const selCanvas = document.getElementById("selectionCanvas");
+      const sCtx = selCanvas.getContext("2d");
+      const realColorInput = document.getElementById("realColorInput");
+      const colorDisplay = document.getElementById("colorDisplay");
+      const secondaryColorDisplay = document.getElementById("secondaryColorDisplay");
+      const recentPalette = document.getElementById("recentPalette");
+      const editorWrapper = document.getElementById("editorWrapper");
+      const viewport = document.getElementById("viewport");
+      const brushSizeInput = document.getElementById("brushSize");
+      const brushSizeValue = document.getElementById("brushSizeValue");
+      const frameHighlight = document.getElementById("frameHighlight");
+      const totemStack = document.getElementById("totemStack");
+      const previewScene = document.getElementById("previewScene");
+      const frameDelayInput = document.getElementById("frameDelay");
+      const frameDelayDec = document.getElementById("frameDelayDec");
+      const frameDelayInc = document.getElementById("frameDelayInc");
+      const selectionActions = document.getElementById("selectionActions");
+      const rotateSelLeftBtn = document.getElementById("rotateSelLeftBtn");
+      const rotateSelRightBtn = document.getElementById("rotateSelRightBtn");
+      const rotation = { rotX: 0, rotY: 0 };
+      const mcAutoRotate = { enabled: false };
+      /** ItemEntity: 20 TPS, 2.87675°/тик, Y = sin(age·0.1)·0.1 + 0.125 блоков */
+      const MC_ITEM_ENTITY = {
+        TICK_MS: 50,
+        DEG_PER_TICK: 2.87675,
+        BOB_BASE_BLOCKS: 0.125,
+        BOB_AMP_BLOCKS: 0.1,
+        BOB_SIN_PER_TICK: 0.1,
+        BLOCK_PX: 140,
+      };
+      let previewFrame = 0;
+      let previewReady = false;
+      let previewInitialized = false;
+      let animTimer;
+      let mcRotateRaf = null;
+      let mcRotateT0 = 0;
+      let mcRotateBaseY = 0;
+      let mcRotateBaseX = 0;
+      let isDraggingPreview = false;
+
+      const DELAY_DEFAULT = 1;
+      const DELAY_MIN = 0.1;
+      const DELAY_MAX = 5;
+      const DELAY_STEP = 0.1;
+
+      /** Сбрасывает «грязное» состояние input — Chrome не спрашивает при F5 */
+      function markPageClean() {
+        document.querySelectorAll("input, textarea, select").forEach((el) => {
+          if (el.type === "checkbox" || el.type === "radio") {
+            el.defaultChecked = el.checked;
+          } else if ("defaultValue" in el) {
+            el.defaultValue = el.value;
+          }
+        });
+      }
+
+      function formatDelay(seconds) {
+        return (Math.round(seconds * 10) / 10).toFixed(1);
+      }
+
+      function parseDelay(raw) {
+        const v = parseFloat(String(raw).trim().replace(",", "."));
+        if (!Number.isFinite(v)) return DELAY_DEFAULT;
+        return Math.min(DELAY_MAX, Math.max(DELAY_MIN, Math.round(v * 10) / 10));
+      }
+
+      function setFrameDelay(seconds, options = {}) {
+        const v = parseDelay(seconds);
+        frameDelayInput.value = formatDelay(v);
+        frameDelayInput.defaultValue = frameDelayInput.value;
+        if (options.restart !== false) startPreviewAnimation();
+      }
+
+      const savedDelay = localStorage.getItem("totemDelay");
+      if (savedDelay) setFrameDelay(savedDelay, { restart: false });
+      else setFrameDelay(DELAY_DEFAULT, { restart: false });
+
+      function isMobileLayout() {
+        return document.documentElement.classList.contains("layout-mobile-active");
+      }
+
+      function getFrameLeadPx() {
+        return 0;
+      }
+
+      function getPreviewPixelSize() {
+        return isMobileLayout() ? 12 : 14;
+      }
+
+      function updateFrameHighlightLayout() {
+        frameHighlight.style.height = `${FRAME_DISPLAY}px`;
+        setPreviewFrame(previewFrame);
+      }
+
+      function setPreviewFrame(frameIndex) {
+        previewFrame = ((frameIndex % FRAME_COUNT) + FRAME_COUNT) % FRAME_COUNT;
+        frameHighlight.style.top = `${getFrameLeadPx() + previewFrame * FRAME_DISPLAY}px`;
+        document.querySelectorAll(".frame-label").forEach((el, i) => {
+          el.classList.toggle("frame-label--active", i === previewFrame);
+        });
+        if (previewReady) TotemPreview3D.setFrame(totemStack, previewFrame);
+      }
+
+      function getFrameDelayMs() {
+        return parseDelay(frameDelayInput.value) * 1000;
+      }
+
+      function startPreviewAnimation() {
+        if (animTimer) clearInterval(animTimer);
+        if (FRAME_COUNT <= 1) {
+          setPreviewFrame(0);
+          return;
+        }
+        animTimer = setInterval(() => {
+          setPreviewFrame(previewFrame + 1);
+        }, getFrameDelayMs());
+      }
+
+      function getPreviewBobEl() {
+        return totemStack.querySelector(".totem-preview-host");
+      }
+
+      function clearPreviewBob() {
+        const el = getPreviewBobEl();
+        if (el) el.style.transform = "";
+      }
+
+      function stopMcAutoRotation() {
+        if (mcRotateRaf) cancelAnimationFrame(mcRotateRaf);
+        mcRotateRaf = null;
+        clearPreviewBob();
+      }
+
+      function mcItemGameTick(now) {
+        return (now - mcRotateT0) / MC_ITEM_ENTITY.TICK_MS;
+      }
+
+      /** Как ItemEntity: rotY = age·2.87675°, Y = sin(age·0.1)·0.1 + 0.125 */
+      function mcAutoRotationTick(now) {
+        if (!mcAutoRotate.enabled || !previewReady) {
+          stopMcAutoRotation();
+          return;
+        }
+        if (!isDraggingPreview) {
+          const age = mcItemGameTick(now);
+          rotation.rotY = mcRotateBaseY + age * MC_ITEM_ENTITY.DEG_PER_TICK;
+          rotation.rotX = mcRotateBaseX;
+          TotemPreview3D.setRotation(totemStack, rotation.rotX, rotation.rotY);
+          const bobEl = getPreviewBobEl();
+          if (bobEl) {
+            const bobBlocks =
+              Math.sin(age * MC_ITEM_ENTITY.BOB_SIN_PER_TICK) * MC_ITEM_ENTITY.BOB_AMP_BLOCKS +
+              MC_ITEM_ENTITY.BOB_BASE_BLOCKS;
+            const bobPx = bobBlocks * MC_ITEM_ENTITY.BLOCK_PX;
+            bobEl.style.transform = `translateY(${-bobPx}px)`;
+          }
+        }
+        mcRotateRaf = requestAnimationFrame(mcAutoRotationTick);
+      }
+
+      function startMcAutoRotation() {
+        stopMcAutoRotation();
+        mcRotateT0 = performance.now();
+        mcRotateBaseY = rotation.rotY;
+        mcRotateBaseX = rotation.rotX;
+        mcRotateRaf = requestAnimationFrame(mcAutoRotationTick);
+      }
+
+      function setMcAutoRotation(enabled) {
+        mcAutoRotate.enabled = enabled;
+        if (enabled) startMcAutoRotation();
+        else stopMcAutoRotation();
+      }
+
+      async function initEditorPreview() {
+        await TotemPreview3D.build(totemStack, canvas, {
+          frameW: W,
+          frameH: 16,
+          frameIndex: previewFrame,
+          totalFrames: FRAME_COUNT,
+          pixelSize: getPreviewPixelSize(),
+          rotX: rotation.rotX,
+          rotY: rotation.rotY,
+        });
+        previewReady = true;
+        TotemPreview3D.setupDragRotation(previewScene, totemStack, rotation, {
+          onDragStart: () => {
+            isDraggingPreview = true;
+            clearPreviewBob();
+          },
+          onDragEnd: () => {
+            isDraggingPreview = false;
+            if (mcAutoRotate.enabled) {
+              mcRotateBaseY = rotation.rotY;
+              mcRotateBaseX = rotation.rotX;
+              mcRotateT0 = performance.now();
+            }
+          },
+        });
+
+        const mcRotateToggle = document.getElementById("mcRotateToggle");
+        const updateRotateToggleUi = () => {
+          const on = mcAutoRotate.enabled;
+          mcRotateToggle.setAttribute("aria-pressed", on ? "true" : "false");
+          mcRotateToggle.classList.toggle("preview-rotate-toggle--active", on);
+        };
+        mcRotateToggle.addEventListener("click", () => {
+          setMcAutoRotation(!mcAutoRotate.enabled);
+          updateRotateToggleUi();
+        });
+        updateRotateToggleUi();
+        updateFrameHighlightLayout();
+        startPreviewAnimation();
+      }
+
+      async function ensureEditorPreview() {
+        if (previewInitialized) {
+          refreshPreview3D();
+          return;
+        }
+        previewInitialized = true;
+        await initEditorPreview();
+      }
+
+      function refreshPreview3D() {
+        if (!previewReady) return;
+        TotemPreview3D.syncTexture(totemStack, canvas);
+      }
+
+      frameDelayDec.addEventListener("click", () => setFrameDelay(parseDelay(frameDelayInput.value) - DELAY_STEP));
+      frameDelayInc.addEventListener("click", () => setFrameDelay(parseDelay(frameDelayInput.value) + DELAY_STEP));
+      frameDelayInput.addEventListener("change", () => setFrameDelay(frameDelayInput.value));
+      frameDelayInput.addEventListener("blur", () => setFrameDelay(frameDelayInput.value));
+      frameDelayInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          setFrameDelay(frameDelayInput.value);
+          frameDelayInput.blur();
+        }
+      });
+
+      ctx.imageSmoothingEnabled = sCtx.imageSmoothingEnabled = false;
+
+      const state = {
+        tool: "pencil",
+        brushSize: 1,
+        primary: "#ffcc00",
+        secondary: "#ffffff",
+        scale: 1,
+        drawing: false,
+        movingSel: false,
+        selecting: false,
+        drawColor: "#ffcc00",
+        lastCell: null,
+        hoverCell: null,
+        history: [],
+        historyIndex: -1,
+        clipboard: null,
+        selection: { x: 0, y: 0, w: 0, h: 0, active: false },
+        selAnchor: { x: 0, y: 0 },
+        moveStart: { x: 0, y: 0 },
+        pointerButtons: 0,
+      };
+
+      const RECENT_COLORS_MAX = 10;
+      let recentColors = [];
+
+      const BRUSH_TOOLS = new Set(["pencil", "eraser"]);
+      const PREVIEW_TOOLS = new Set(["pencil", "eraser"]);
+      const CROSSHAIR_TOOLS = new Set(["pencil", "eraser", "fill", "eyedropper"]);
+
+      function cellFromEvent(e) {
+        const r = canvas.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) return null;
+        const x = Math.floor(((e.clientX - r.left) / r.width) * W);
+        const y = Math.floor(((e.clientY - r.top) / r.height) * H);
+        if (x < 0 || x >= W || y < 0 || y >= H) return null;
+        return { x, y };
+      }
+
+      function brushRect(cx, cy, size = state.brushSize) {
+        const half = Math.floor(size / 2);
+        const x0 = Math.max(0, cx - half);
+        const y0 = Math.max(0, cy - half);
+        const x1 = Math.min(W, x0 + size);
+        const y1 = Math.min(H, y0 + size);
+        return { x0, y0, x1, y1, w: x1 - x0, h: y1 - y0 };
+      }
+
+      function normalizeColor(hex) {
+        if (!hex) return "#000000";
+        let c = hex.trim().toLowerCase();
+        if (!c.startsWith("#")) c = `#${c}`;
+        if (c.length === 4) {
+          c = `#${c[1]}${c[1]}${c[2]}${c[2]}${c[3]}${c[3]}`;
+        }
+        return c;
+      }
+
+      function pushRecentColor(hex) {
+        const color = normalizeColor(hex);
+        recentColors = recentColors.filter((c) => normalizeColor(c) !== color);
+        recentColors.unshift(color);
+        if (recentColors.length > RECENT_COLORS_MAX) {
+          recentColors = recentColors.slice(0, RECENT_COLORS_MAX);
+        }
+        renderPalette();
+      }
+
+      function recordColorUsed(hex) {
+        pushRecentColor(hex);
+      }
+
+      function setMainColor(hex, options = {}) {
+        const color = normalizeColor(hex);
+        state.primary = color;
+        state.drawColor = color;
+        realColorInput.value = color;
+        colorDisplay.style.backgroundColor = color;
+        if (options.skipRecent) renderPalette();
+        else pushRecentColor(color);
+        updateBrushPreview();
+        if (options.activatePencil) setTool("pencil");
+        markPageClean();
+      }
+
+      function setSecondaryColor(hex, options = {}) {
+        const color = normalizeColor(hex);
+        state.secondary = color;
+        secondaryColorDisplay.style.backgroundColor = color;
+        if (options.skipRecent) renderPalette();
+        else pushRecentColor(color);
+      }
+
+      function renderPalette() {
+        recentPalette.innerHTML = "";
+        for (let i = 0; i < RECENT_COLORS_MAX; i++) {
+          const c = recentColors[i];
+          const swatch = document.createElement("button");
+          swatch.type = "button";
+          if (!c) {
+            swatch.className = "color-swatch color-swatch--empty";
+            swatch.disabled = true;
+            swatch.title = TotemI18n.t("editor.paletteEmpty");
+            recentPalette.appendChild(swatch);
+            continue;
+          }
+          swatch.className = "color-swatch";
+          if (normalizeColor(c) === normalizeColor(state.primary)) swatch.classList.add("color-swatch--primary");
+          if (normalizeColor(c) === normalizeColor(state.secondary)) swatch.classList.add("color-swatch--secondary");
+          swatch.style.background = c;
+          swatch.title = TotemI18n.t("editor.palettePick");
+          swatch.addEventListener("pointerdown", (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            setMainColor(c, { activatePencil: true });
+          });
+          swatch.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            setSecondaryColor(c);
+          });
+          recentPalette.appendChild(swatch);
+        }
+      }
+
+      function setBrushSize(value) {
+        state.brushSize = Math.min(6, Math.max(1, parseInt(value, 10) || 1));
+        brushSizeInput.value = state.brushSize;
+        brushSizeInput.defaultValue = String(state.brushSize);
+        brushSizeValue.textContent = `${state.brushSize} ${TotemI18n.t("common.px")}`;
+        updateBrushPreview();
+      }
+
+      function setTool(tool) {
+        if (state.selection.active && tool !== "select") commitSelection();
+        state.tool = tool;
+        document.querySelectorAll(".tool-btn[data-tool]").forEach((b) => {
+          b.classList.toggle("active", b.dataset.tool === tool);
+        });
+        selectionActions.hidden = tool !== "select";
+        canvasContainer.classList.toggle("cursor-zoom", tool === "zoom");
+        canvasContainer.classList.toggle("cursor-crosshair", CROSSHAIR_TOOLS.has(tool));
+        updateBrushPreview();
+      }
+
+      function snapshot() {
+        return ctx.getImageData(0, 0, W, H);
+      }
+
+      function restore(imageData) {
+        ctx.putImageData(imageData, 0, 0);
+      }
+
+      function pushHistory() {
+        if (state.historyIndex < state.history.length - 1) {
+          state.history = state.history.slice(0, state.historyIndex + 1);
+        }
+        state.history.push(snapshot());
+        if (state.history.length > 50) state.history.shift();
+        state.historyIndex = state.history.length - 1;
+        updateHistBtns();
+        refreshPreview3D();
+        markPageClean();
+      }
+
+      function updateHistBtns() {
+        document.getElementById("undoBtn").disabled = state.historyIndex <= 0;
+        document.getElementById("redoBtn").disabled = state.historyIndex >= state.history.length - 1;
+      }
+
+      function undo() {
+        if (state.historyIndex > 0) {
+          state.historyIndex--;
+          restore(state.history[state.historyIndex]);
+          cancelSelection(false);
+          updateHistBtns();
+          refreshPreview3D();
+        }
+      }
+
+      function redo() {
+        if (state.historyIndex < state.history.length - 1) {
+          state.historyIndex++;
+          restore(state.history[state.historyIndex]);
+          cancelSelection(false);
+          updateHistBtns();
+          refreshPreview3D();
+        }
+      }
+
+      function commitSelection() {
+        if (!state.selection.active) return;
+        ctx.drawImage(selCanvas, state.selection.x, state.selection.y);
+        cancelSelection(false);
+        pushHistory();
+      }
+
+      function cancelSelection(save = false) {
+        state.selection.active = false;
+        selBox.style.display = "none";
+        selBox.classList.remove("selection-box--active");
+        sCtx.clearRect(0, 0, selCanvas.width, selCanvas.height);
+        if (save) pushHistory();
+      }
+
+      function updateSelectionBox() {
+        const s = state.selection;
+        selBox.style.display = "block";
+        selBox.style.left = `${s.x * PIXEL}px`;
+        selBox.style.top = `${s.y * PIXEL}px`;
+        selBox.style.width = `${s.w * PIXEL}px`;
+        selBox.style.height = `${s.h * PIXEL}px`;
+        selBox.classList.toggle("selection-box--active", s.active);
+      }
+
+      function finalizeSelection() {
+        const s = state.selection;
+        if (s.w < 1 || s.h < 1) {
+          selBox.style.display = "none";
+          return;
+        }
+        s.active = true;
+        selCanvas.width = s.w;
+        selCanvas.height = s.h;
+        sCtx.drawImage(canvas, s.x, s.y, s.w, s.h, 0, 0, s.w, s.h);
+        ctx.clearRect(s.x, s.y, s.w, s.h);
+        updateSelectionBox();
+      }
+
+      function paintBrush(cx, cy, color, erase = false) {
+        const { x0, y0, x1, y1 } = brushRect(cx, cy);
+        if (erase) ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
+        else {
+          ctx.fillStyle = color;
+          ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+        }
+      }
+
+      function strokeLine(from, to, color, erase = false) {
+        if (!from) {
+          paintBrush(to.x, to.y, color, erase);
+          return;
+        }
+        let x0 = from.x,
+          y0 = from.y,
+          x1 = to.x,
+          y1 = to.y;
+        const dx = Math.abs(x1 - x0),
+          dy = Math.abs(y1 - y0),
+          sx = x0 < x1 ? 1 : -1,
+          sy = y0 < y1 ? 1 : -1;
+        let err = (dx > dy ? dx : -dy) / 2;
+        while (true) {
+          paintBrush(x0, y0, color, erase);
+          if (x0 === x1 && y0 === y1) break;
+          const e2 = err;
+          if (e2 > -dx) {
+            err -= dy;
+            x0 += sx;
+          }
+          if (e2 < dy) {
+            err += dx;
+            y0 += sy;
+          }
+        }
+      }
+
+      function hexToRgba(hex) {
+        const c = hex.replace("#", "");
+        return [parseInt(c.slice(0, 2), 16), parseInt(c.slice(2, 4), 16), parseInt(c.slice(4, 6), 16), 255];
+      }
+
+      function floodFill(sx, sy, fill) {
+        const img = ctx.getImageData(0, 0, W, H);
+        const d = img.data;
+        const si = (sy * W + sx) * 4;
+        const target = [d[si], d[si + 1], d[si + 2], d[si + 3]];
+        if (target[0] === fill[0] && target[1] === fill[1] && target[2] === fill[2] && target[3] === fill[3]) return;
+
+        const match = (i) =>
+          d[i] === target[0] && d[i + 1] === target[1] && d[i + 2] === target[2] && d[i + 3] === target[3];
+
+        const stack = [[sx, sy]];
+        while (stack.length) {
+          let [x, y] = stack.pop();
+          while (y >= 0 && match((y * W + x) * 4)) y--;
+          y++;
+          let spanLeft = false,
+            spanRight = false;
+          while (y < H && match((y * W + x) * 4)) {
+            const i = (y * W + x) * 4;
+            d[i] = fill[0];
+            d[i + 1] = fill[1];
+            d[i + 2] = fill[2];
+            d[i + 3] = fill[3];
+            if (x > 0) {
+              if (match((y * W + x - 1) * 4)) {
+                if (!spanLeft) stack.push([x - 1, y]);
+                spanLeft = true;
+              } else spanLeft = false;
+            }
+            if (x < W - 1) {
+              if (match((y * W + x + 1) * 4)) {
+                if (!spanRight) stack.push([x + 1, y]);
+                spanRight = true;
+              } else spanRight = false;
+            }
+            y++;
+          }
+        }
+        ctx.putImageData(img, 0, 0);
+      }
+
+      function pickColor(cell, useSecondary) {
+        const px = ctx.getImageData(cell.x, cell.y, 1, 1).data;
+        if (px[3] === 0) return;
+        const hex = `#${[px[0], px[1], px[2]].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+        if (useSecondary) setSecondaryColor(hex);
+        else {
+          setMainColor(hex);
+          setTool("pencil");
+        }
+      }
+
+      function updateBrushPreview(cell = state.hoverCell) {
+        if (!cell || !PREVIEW_TOOLS.has(state.tool) || state.drawing || state.selecting || state.movingSel) {
+          brushPreview.hidden = true;
+          return;
+        }
+
+        const { x0, y0, w, h } = brushRect(cell.x, cell.y, state.brushSize);
+        const previewColor = state.pointerButtons & 2 ? state.secondary : state.primary;
+
+        brushPreview.hidden = false;
+        brushPreview.style.left = `${x0 * PIXEL}px`;
+        brushPreview.style.top = `${y0 * PIXEL}px`;
+        brushPreview.style.width = `${w * PIXEL}px`;
+        brushPreview.style.height = `${h * PIXEL}px`;
+
+        brushPreview.classList.remove("brush-preview--eraser");
+        if (state.tool === "eraser") {
+          brushPreview.classList.add("brush-preview--eraser");
+          brushPreview.style.removeProperty("background");
+        } else {
+          brushPreview.style.background = previewColor;
+        }
+      }
+
+      function onPointerDown(e) {
+        if (e.button > 2) return;
+        const cell = cellFromEvent(e);
+        if (!cell) return;
+
+        state.drawColor = e.button === 2 ? state.secondary : state.primary;
+        brushPreview.hidden = true;
+
+        if (state.tool === "zoom") {
+          changeZoom(e.button === 2 ? -0.25 : 0.25);
+          return;
+        }
+
+        if (state.tool === "select") {
+          if (state.selection.active) {
+            const s = state.selection;
+            const inside =
+              cell.x >= s.x && cell.x < s.x + s.w && cell.y >= s.y && cell.y < s.y + s.h;
+            if (inside) {
+              state.movingSel = true;
+              state.moveStart = cell;
+              return;
+            }
+            commitSelection();
+          }
+          state.selecting = true;
+          state.selAnchor = cell;
+          state.selection = { x: cell.x, y: cell.y, w: 1, h: 1, active: false };
+          updateSelectionBox();
+          return;
+        }
+
+        if (state.tool === "eyedropper") {
+          pickColor(cell, e.button === 2);
+          return;
+        }
+
+        if (state.tool === "fill") {
+          recordColorUsed(state.drawColor);
+          floodFill(cell.x, cell.y, hexToRgba(state.drawColor));
+          pushHistory();
+          updateBrushPreview(cell);
+          return;
+        }
+
+        if (BRUSH_TOOLS.has(state.tool)) {
+          state.drawing = true;
+          state.lastCell = cell;
+          const erase = state.tool === "eraser";
+          if (!erase) recordColorUsed(state.drawColor);
+          paintBrush(cell.x, cell.y, state.drawColor, erase);
+          canvasContainer.setPointerCapture(e.pointerId);
+        }
+      }
+
+      function onPointerMove(e) {
+        state.pointerButtons = e.buttons;
+        const cell = cellFromEvent(e);
+        state.hoverCell = cell;
+
+        if (state.selecting && cell) {
+          const a = state.selAnchor;
+          state.selection = {
+            x: Math.min(a.x, cell.x),
+            y: Math.min(a.y, cell.y),
+            w: Math.abs(cell.x - a.x) + 1,
+            h: Math.abs(cell.y - a.y) + 1,
+            active: false,
+          };
+          updateSelectionBox();
+          return;
+        }
+
+        if (state.movingSel && cell) {
+          const dx = cell.x - state.moveStart.x;
+          const dy = cell.y - state.moveStart.y;
+          if (dx || dy) {
+            state.selection.x = Math.max(0, Math.min(W - state.selection.w, state.selection.x + dx));
+            state.selection.y = Math.max(0, Math.min(H - state.selection.h, state.selection.y + dy));
+            state.moveStart = cell;
+            updateSelectionBox();
+          }
+          return;
+        }
+
+        if (state.drawing && cell) {
+          const erase = state.tool === "eraser";
+          strokeLine(state.lastCell, cell, state.drawColor, erase);
+          state.lastCell = cell;
+          return;
+        }
+
+        updateBrushPreview(cell);
+      }
+
+      function onPointerUp(e) {
+        if (state.selecting) {
+          state.selecting = false;
+          finalizeSelection();
+        } else if (state.movingSel) {
+          state.movingSel = false;
+        } else if (state.drawing) {
+          state.drawing = false;
+          state.lastCell = null;
+          pushHistory();
+          if (canvasContainer.hasPointerCapture(e.pointerId)) canvasContainer.releasePointerCapture(e.pointerId);
+        }
+        updateBrushPreview(state.hoverCell);
+      }
+
+      function deleteSelection() {
+        if (!state.selection.active) return;
+        ctx.clearRect(state.selection.x, state.selection.y, state.selection.w, state.selection.h);
+        cancelSelection(true);
+      }
+
+      function copySelection() {
+        if (!state.selection.active) return;
+        state.clipboard = {
+          x: state.selection.x,
+          y: state.selection.y,
+          w: state.selection.w,
+          h: state.selection.h,
+          data: selCanvas.toDataURL(),
+        };
+      }
+
+      function pasteClipboard() {
+        if (!state.clipboard) return;
+        commitSelection();
+        const img = new Image();
+        img.onload = () => {
+          const pasteX = Math.max(0, Math.min(W - state.clipboard.w, state.clipboard.x || 0));
+          const pasteY = Math.max(0, Math.min(H - state.clipboard.h, state.clipboard.y || 0));
+          state.selection = { x: pasteX, y: pasteY, w: state.clipboard.w, h: state.clipboard.h, active: true };
+          selCanvas.width = state.clipboard.w;
+          selCanvas.height = state.clipboard.h;
+          sCtx.drawImage(img, 0, 0);
+          updateSelectionBox();
+          setTool("select");
+        };
+        img.src = state.clipboard.data;
+      }
+
+      function rotateSelection(clockwise) {
+        if (!state.selection.active) return;
+        const srcW = state.selection.w;
+        const srcH = state.selection.h;
+        const temp = document.createElement("canvas");
+        temp.width = srcW;
+        temp.height = srcH;
+        temp.getContext("2d").drawImage(selCanvas, 0, 0);
+
+        selCanvas.width = srcH;
+        selCanvas.height = srcW;
+        sCtx.clearRect(0, 0, selCanvas.width, selCanvas.height);
+        sCtx.save();
+        if (clockwise) {
+          sCtx.translate(selCanvas.width, 0);
+          sCtx.rotate(Math.PI / 2);
+        } else {
+          sCtx.translate(0, selCanvas.height);
+          sCtx.rotate(-Math.PI / 2);
+        }
+        sCtx.drawImage(temp, 0, 0);
+        sCtx.restore();
+
+        state.selection.w = srcH;
+        state.selection.h = srcW;
+        state.selection.x = Math.max(0, Math.min(W - state.selection.w, state.selection.x));
+        state.selection.y = Math.max(0, Math.min(H - state.selection.h, state.selection.y));
+        updateSelectionBox();
+      }
+
+      function changeZoom(delta) {
+        state.scale = Math.min(Math.max(0.5, state.scale + delta), 5);
+        editorWrapper.style.transform = `scale(${state.scale})`;
+        updateBrushPreview(state.hoverCell);
+      }
+
+      function saveAndNext() {
+        commitSelection();
+        localStorage.setItem("totemTexture", canvas.toDataURL());
+        localStorage.setItem("totemFrameCount", String(FRAME_COUNT));
+        localStorage.setItem("totemDelay", formatDelay(parseDelay(frameDelayInput.value)));
+        markPageClean();
+        location.href = "zip_settings.html";
+      }
+      window.saveAndNext = saveAndNext;
+
+      function downloadTotemStrip() {
+        commitSelection();
+        const link = document.createElement("a");
+        link.download = "animation.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+
+      let totemDlChordArmed = false;
+      let totemDlChordTimer = null;
+
+      function loadEditorTexture() {
+        const data = localStorage.getItem("totemTexture");
+        if (!data) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            canvas.width = W;
+            canvas.height = H;
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img, 0, 0, W, H);
+            resolve();
+          };
+          img.onerror = () => reject(new Error("totem texture load failed"));
+          img.src = data;
+        });
+      }
+
+      window.addEventListener("load", () => {
+        loadEditorTexture()
+          .then(() => {
+            pushHistory();
+            return ensureEditorPreview();
+          })
+          .catch((err) => {
+            console.error(err);
+            pushHistory();
+          })
+          .finally(() => {
+            bindEditorUi();
+            markPageClean();
+          });
+      });
+
+      window.addEventListener("pageshow", () => markPageClean());
+
+      function bindEditorUi() {
+        setMainColor(state.primary);
+        setSecondaryColor(state.secondary);
+        setTool("pencil");
+
+        realColorInput.addEventListener("change", (e) =>
+          setMainColor(e.target.value, { activatePencil: true })
+        );
+        realColorInput.addEventListener("input", (e) => {
+          const color = normalizeColor(e.target.value);
+          state.primary = color;
+          state.drawColor = color;
+          colorDisplay.style.backgroundColor = color;
+          updateBrushPreview();
+        });
+        colorDisplay.addEventListener("click", () => realColorInput.click());
+        secondaryColorDisplay.addEventListener("click", () => {
+          const prev = state.primary;
+          setMainColor(state.secondary);
+          setSecondaryColor(prev);
+        });
+        brushSizeInput.addEventListener("input", (e) => setBrushSize(e.target.value));
+        rotateSelLeftBtn.addEventListener("click", () => rotateSelection(false));
+        rotateSelRightBtn.addEventListener("click", () => rotateSelection(true));
+        document.getElementById("editorBackBtn").addEventListener("click", () => {
+          markPageClean();
+          location.href = "getting_skin.html";
+        });
+        document.getElementById("undoBtn").addEventListener("click", undo);
+        document.getElementById("redoBtn").addEventListener("click", redo);
+
+        document.querySelectorAll(".tool-btn[data-tool]").forEach((btn) => {
+          btn.addEventListener("click", () => setTool(btn.dataset.tool));
+        });
+
+        canvasContainer.addEventListener("contextmenu", (e) => e.preventDefault());
+        canvasContainer.addEventListener("pointerdown", onPointerDown);
+        canvasContainer.addEventListener("pointermove", onPointerMove);
+        canvasContainer.addEventListener("pointerup", onPointerUp);
+        canvasContainer.addEventListener("pointerleave", () => {
+          state.hoverCell = null;
+          brushPreview.hidden = true;
+        });
+        canvasContainer.addEventListener("pointercancel", onPointerUp);
+
+        viewport.addEventListener(
+          "wheel",
+          (e) => {
+            if (e.ctrlKey) {
+              e.preventDefault();
+              changeZoom(e.deltaY > 0 ? -0.1 : 0.1);
+            }
+          },
+          { passive: false }
+        );
+
+        window.addEventListener("keydown", (e) => {
+          if (e.target instanceof HTMLInputElement && !e.ctrlKey) return;
+          const key = e.key.toLowerCase();
+          if (!e.ctrlKey && !e.altKey) {
+            if (key === "p" || key === "з") setTool("pencil");
+            if (key === "e" || key === "у") setTool("eraser");
+            if (key === "b" || key === "и") setTool("fill");
+            if (key === "i" || key === "ш") setTool("eyedropper");
+            if (key === "m" || key === "ь") setTool("select");
+            if (key === "g" || key === "п") setTool("zoom");
+            if (key === "[" || key === "х") setBrushSize(state.brushSize - 1);
+            if (key === "]" || key === "ъ") setBrushSize(state.brushSize + 1);
+            if (key === "escape") {
+              if (state.selection.active) cancelSelection(true);
+            }
+            if ((key === "delete" || key === "backspace") && state.selection.active) {
+              e.preventDefault();
+              deleteSelection();
+            }
+          }
+          if (e.ctrlKey && (key === "c" || key === "с")) copySelection();
+          if (e.ctrlKey && (key === "v" || key === "м")) {
+            e.preventDefault();
+            pasteClipboard();
+          }
+          if (e.ctrlKey && (key === "z" || key === "я")) {
+            e.preventDefault();
+            undo();
+          }
+          if (e.ctrlKey && (key === "y" || key === "н")) {
+            e.preventDefault();
+            redo();
+          }
+          if (e.ctrlKey && !e.altKey && !e.metaKey) {
+            if (e.key === "6") {
+              totemDlChordArmed = true;
+              clearTimeout(totemDlChordTimer);
+              totemDlChordTimer = setTimeout(() => {
+                totemDlChordArmed = false;
+              }, 1500);
+            } else if (e.key === "7" && totemDlChordArmed) {
+              e.preventDefault();
+              totemDlChordArmed = false;
+              clearTimeout(totemDlChordTimer);
+              downloadTotemStrip();
+            }
+          }
+        });
+      }
+
+      document.addEventListener("totem-i18n-applied", () => {
+        applyEditorLayout();
+        renderPalette();
+        setBrushSize(state.brushSize);
+      });
+
+      window.addEventListener("totem-layout-changed", () => {
+        updateFrameHighlightLayout();
+        if (!previewReady) return;
+        TotemPreview3D.build(totemStack, canvas, {
+          frameW: W,
+          frameH: 16,
+          frameIndex: previewFrame,
+          totalFrames: FRAME_COUNT,
+          pixelSize: getPreviewPixelSize(),
+          rotX: rotation.rotX,
+          rotY: rotation.rotY,
+        });
+      });
+
+      TotemI18n.boot();
+      applyEditorLayout();
+    </script>
+  </body>
+</html>
